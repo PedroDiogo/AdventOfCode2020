@@ -4,6 +4,7 @@ use std::env;
 
 fn main() {
     match get_day() {
+        1 => day1::run(),
         _ => println!("Unknown day - {}", get_day())
     }
 }
