@@ -6,32 +6,50 @@ pub fn run() {
     let inputs = read_inputs(&filename);
     let inputs = split_lines_into_vec_int(&inputs);
 
-    let part_one = multiply_2020_entries(&inputs);
+    let entries = find_two_entries_that_sum_to(&inputs, &2020).unwrap();
+    let part_one = multiply_entries(&entries);
     println!("Part one: {}", part_one);
+
+    let entries = find_three_entries_that_sum_to(&inputs, &2020).unwrap();
+    let part_two = multiply_entries(&entries);
+    println!("Part two: {}", part_two);
 }
 
-fn multiply_2020_entries(lines: &Vec<i64>) -> i64 {
-    find_2020_entries(lines)
+fn multiply_entries(entries: &Vec<i64>) -> i64 {
+    entries
     .iter()
     .fold(1, |acc, entry| acc * entry)
 }
 
-fn sum_line_digits(line: &str) -> u64 {
-    line.chars()
-    .map(|c| c.to_digit(10).expect("Expecting a digit") as u64)
-    .fold(0, |acc, c| acc + c)
+fn find_three_entries_that_sum_to(lines: &Vec<i64>, sum: &i64) -> Option<Vec<i64>> {
+    let mut sorted_entries = lines.clone();
+    sorted_entries.sort();
+
+    let entries = sorted_entries
+    .iter()
+    .find_map(|entry| find_two_entries_that_sum_to(lines, &(*sum-*entry)));
+
+    return if let Some(mut entries) = entries {
+        entries.push(sum - entries[0] - entries[1]);
+        Some(entries)
+    } else {
+        None
+    }
 }
 
-fn find_2020_entries(lines: &Vec<i64>) -> Vec<i64> {
+fn find_two_entries_that_sum_to(lines: &Vec<i64>, sum: &i64) -> Option<Vec<i64>> {
     let mut sorted_entries = lines.clone();
     sorted_entries.sort();
 
     let entry_idx = &sorted_entries.iter()
-        .find_map(|entry| sorted_entries.binary_search(&(2020-entry)).ok())
-        .expect("Didn't find 2020 entries");
-    let entry = sorted_entries.get(*entry_idx).unwrap().clone();
+        .find_map(|entry| sorted_entries.binary_search(&(*sum-entry)).ok());
 
-    vec![entry, 2020-entry]
+    return if let Some(entry_idx) = entry_idx {
+        let entry = sorted_entries.get(*entry_idx).unwrap().clone();
+        Some(vec![entry, *sum-entry])
+    } else {
+        Option::None
+    }
 }
 
 #[cfg(test)]
@@ -39,21 +57,32 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_sum_lines_digits() {
-        assert_eq!(10, sum_line_digits("1234"));
+    fn test_find_two_entries_that_sum_to() {
+        let inputs = vec![1721, 979, 366, 299, 675, 1456];
+        let expected_entries = Some(vec![1721, 299]);
+
+        assert_eq!(expected_entries, find_two_entries_that_sum_to(&inputs, &2020));
     }
 
     #[test]
-    fn test_find_2020_entries() {
+    fn test_find_three_entries_that_sum_to() {
         let inputs = vec![1721, 979, 366, 299, 675, 1456];
-        let expected_entries = vec![1721, 299];
+        let expected_entries = Some(vec![979, 675, 366]);
 
-        assert_eq!(expected_entries, find_2020_entries(&inputs));
+        assert_eq!(expected_entries, find_three_entries_that_sum_to(&inputs, &2020));
     }
-
+ 
     #[test]
     fn test_case_1() {
         let inputs = vec![1721, 979, 366, 299, 675, 1456];
-        assert_eq!(514579, multiply_2020_entries(&inputs));
+        let entries = find_two_entries_that_sum_to(&inputs, &2020).unwrap();
+        assert_eq!(514579, multiply_entries(&entries));
+    }
+
+    #[test]
+    fn test_case_2() {
+        let inputs = vec![1721, 979, 366, 299, 675, 1456];
+        let entries = find_three_entries_that_sum_to(&inputs, &2020).unwrap();
+        assert_eq!(241861950, multiply_entries(&entries));
     }
 }
