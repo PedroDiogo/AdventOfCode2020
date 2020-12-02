@@ -1,4 +1,5 @@
-#[macro_use] extern crate scan_fmt;
+#[macro_use]
+extern crate scan_fmt;
 
 pub mod days;
 use days::*;
@@ -8,7 +9,7 @@ fn main() {
     match get_day() {
         1 => day1::run(),
         2 => day2::run(),
-        _ => println!("Unknown day - {}", get_day())
+        _ => println!("Unknown day - {}", get_day()),
     }
 }
 

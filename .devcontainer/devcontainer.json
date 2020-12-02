@@ -14,7 +14,8 @@
 		// VS Code don't watch files under ./target
 		"files.watcherExclude": {
 			"**/target/**": true
-		}
+		},
+		"editor.formatOnSave": true
 	},
 
 	// Add the IDs of extensions you want installed when the container is created.

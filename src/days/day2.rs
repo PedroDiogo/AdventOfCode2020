@@ -3,7 +3,6 @@ use self::advent::*;
 
 use std::collections::HashMap;
 
-
 pub fn run() {
     let filename = "inputs/day2.txt";
     let inputs = read_inputs(&filename);
@@ -16,11 +15,17 @@ pub fn run() {
     println!("Part two: {}", part_two);
 }
 
-fn number_of_valid_passwords(passwords: &Vec<&str>, validator_function: fn(&usize, &usize, &char, &str) -> bool) -> usize {
-    passwords.iter()
-    .map(|password| scan_fmt!(password, "{d}-{d} {[a-z]}: {}", usize, usize, char, String).unwrap())
-    .filter(|(min, max, character, password)| validator_function(min, max, character, password))
-    .count()
+fn number_of_valid_passwords(
+    passwords: &Vec<&str>,
+    validator_function: fn(&usize, &usize, &char, &str) -> bool,
+) -> usize {
+    passwords
+        .iter()
+        .map(|password| {
+            scan_fmt!(password, "{d}-{d} {[a-z]}: {}", usize, usize, char, String).unwrap()
+        })
+        .filter(|(min, max, character, password)| validator_function(min, max, character, password))
+        .count()
 }
 
 fn valid_password(min: &usize, max: &usize, character: &char, password: &str) -> bool {
@@ -32,20 +37,31 @@ fn valid_password(min: &usize, max: &usize, character: &char, password: &str) ->
         }
     } else {
         false
-    }
+    };
 }
 
-fn valid_password_part_two(position_1: &usize, position_2: &usize, character:&char, password: &str) -> bool {
-    let char_position1 = password.chars().nth(*position_1-1).expect("Expected a character in position 1");
-    let char_position2 = password.chars().nth(*position_2-1).expect("Expected a character in position 2");
-    let valid_password = char_position1 != char_position2 && (char_position1 == *character || char_position2 == *character);
+fn valid_password_part_two(
+    position_1: &usize,
+    position_2: &usize,
+    character: &char,
+    password: &str,
+) -> bool {
+    let char_position1 = password
+        .chars()
+        .nth(*position_1 - 1)
+        .expect("Expected a character in position 1");
+    let char_position2 = password
+        .chars()
+        .nth(*position_2 - 1)
+        .expect("Expected a character in position 2");
+    let valid_password = char_position1 != char_position2
+        && (char_position1 == *character || char_position2 == *character);
 
     valid_password
 }
 
 fn character_distribution(line: &str) -> HashMap<char, usize> {
-    line.chars()
-    .fold(HashMap::new(), |mut map, character| {
+    line.chars().fold(HashMap::new(), |mut map, character| {
         if let Some(existing_character_value) = map.get_mut(&character) {
             *existing_character_value += 1;
         } else {
@@ -72,9 +88,18 @@ mod tests {
 
     #[test]
     fn test_valid_password_part_two() {
-        assert_eq!(true, valid_password_part_two(&1usize, &3usize, &'a', "abcde"));
-        assert_eq!(false, valid_password_part_two(&1usize, &3usize, &'b', "cdefg"));
-        assert_eq!(false , valid_password_part_two(&1usize, &3usize, &'c', "ccccccccc"));
+        assert_eq!(
+            true,
+            valid_password_part_two(&1usize, &3usize, &'a', "abcde")
+        );
+        assert_eq!(
+            false,
+            valid_password_part_two(&1usize, &3usize, &'b', "cdefg")
+        );
+        assert_eq!(
+            false,
+            valid_password_part_two(&1usize, &3usize, &'c', "ccccccccc")
+        );
     }
 
     #[test]
@@ -84,6 +109,9 @@ mod tests {
         expected_distribution.insert('a', 5);
         expected_distribution.insert('b', 2);
 
-        assert_eq!(expected_distribution, character_distribution("abcabcacacac"));
+        assert_eq!(
+            expected_distribution,
+            character_distribution("abcabcacacac")
+        );
     }
 }
