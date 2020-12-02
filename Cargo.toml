@@ -8,3 +8,4 @@ name = "advent"
 path ="./src/lib/lib.rs"
 
 [dependencies]
+scan_fmt = "0.2.5"
