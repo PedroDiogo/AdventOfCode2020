@@ -9,6 +9,7 @@ fn main() {
     match get_day() {
         1 => day1::run(),
         2 => day2::run(),
+        3 => day3::run(),
         _ => println!("Unknown day - {}", get_day()),
     }
 }
