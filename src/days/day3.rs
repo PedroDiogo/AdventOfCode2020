@@ -6,11 +6,22 @@ pub fn run() {
     let inputs = read_inputs(&filename);
     let map: Vec<&str> = inputs.split("\n").collect();
 
-    let map_size = (map.len(), map.first().unwrap().len());
     let delta = (1, 3);
 
-    let part_one = get_number_of_trees(&map, &get_coordinates(&delta, &map_size));
+    let part_one = get_multiplied_slopes(&map, &vec![&delta]);
     println!("Part one: {}", part_one);
+
+    let deltas = vec![&(1, 1), &(1, 3), &(1, 5), &(1, 7), &(2, 1)];
+    let part_two = get_multiplied_slopes(&map, &deltas);
+    println!("Part two: {}", part_two);
+}
+
+fn get_multiplied_slopes(map: &Vec<&str>, deltas: &Vec<&(usize, usize)>) -> usize {
+    let map_size = (map.len(), map.first().unwrap().len());
+
+    deltas.iter().fold(1, |mult, delta| {
+        mult * get_number_of_trees(&map, &get_coordinates(&delta, &map_size))
+    })
 }
 
 fn get_number_of_trees(map: &Vec<&str>, coordinates: &Vec<(usize, usize)>) -> usize {
@@ -29,8 +40,9 @@ fn get_number_of_trees(map: &Vec<&str>, coordinates: &Vec<(usize, usize)>) -> us
 
 fn get_coordinates(delta: &(usize, usize), map_size: &(usize, usize)) -> Vec<(usize, usize)> {
     let mut col = 0;
-    (1..map_size.0)
+    (0..map_size.0)
         .step_by(delta.0)
+        .skip(1)
         .map(|row| {
             col = (col + delta.1) % map_size.1;
             (row, col)
@@ -64,6 +76,25 @@ mod tests {
     }
 
     #[test]
+    fn test_get_multiplied_slopes() {
+        let map = vec![
+            "..##.......",
+            "#...#...#..",
+            ".#....#..#.",
+            "..#.#...#.#",
+            ".#...##..#.",
+            "..#.##.....",
+            ".#.#.#....#",
+            ".#........#",
+            "#.##...#...",
+            "#...##....#",
+            ".#..#...#.#",
+        ];
+        let deltas = vec![&(1, 1), &(1, 3), &(1, 5), &(1, 7), &(2, 1)];
+        assert_eq!(336, get_multiplied_slopes(&map, &deltas));
+    }
+
+    #[test]
     fn test_get_coordinates() {
         let expected_coordinates = vec![
             (1, 3),
@@ -78,5 +109,11 @@ mod tests {
             (10, 8),
         ];
         assert_eq!(expected_coordinates, get_coordinates(&(1, 3), &(11, 11)));
+    }
+
+    #[test]
+    fn test_get_coordinates_twice_down() {
+        let expected_coordinates = vec![(2, 3), (4, 6), (6, 9), (8, 1), (10, 4)];
+        assert_eq!(expected_coordinates, get_coordinates(&(2, 3), &(11, 11)));
     }
 }
