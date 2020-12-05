@@ -10,8 +10,11 @@ pub fn run() {
         .map(|line| convert_boarding_pass_to_binary(line))
         .filter_map(|line| convert_from_binary(&line).ok());
 
-    let part_one = seat_ids.max().unwrap();
+    let part_one = seat_ids.clone().max().unwrap();
     println!("Part one: {}", part_one);
+
+    let part_two = find_gap(&seat_ids.collect());
+    println!("Part two: {}", part_two.unwrap());
 }
 
 fn convert_boarding_pass_to_binary(line: &str) -> String {
@@ -25,6 +28,22 @@ fn convert_from_binary(line: &str) -> Result<usize, std::num::ParseIntError> {
     usize::from_str_radix(line, 2)
 }
 
+fn find_gap(list: &Vec<usize>) -> Option<usize> {
+    let mut sorted_list = list.clone();
+    sorted_list.sort();
+
+    let mut gap = None;
+    for idx in 1..sorted_list.len() {
+        let current = *sorted_list.get(idx).unwrap();
+        let previous = *sorted_list.get(idx - 1).unwrap();
+
+        if current != previous + 1 {
+            gap = Some(previous + 1);
+            break;
+        }
+    }
+    gap
+}
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -39,5 +58,11 @@ mod tests {
         assert_eq!(4, convert_from_binary("0100")?);
         assert_eq!(44, convert_from_binary("0101100")?);
         Ok(())
+    }
+
+    #[test]
+    fn test_find_gap() {
+        assert_eq!(Some(4), find_gap(&vec![1, 2, 3, 5, 6]));
+        assert_eq!(Some(4), find_gap(&vec![1, 2, 3, 5]));
     }
 }
