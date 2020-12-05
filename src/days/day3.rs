@@ -4,7 +4,7 @@ use self::advent::*;
 pub fn run() {
     let filename = "inputs/day3.txt";
     let inputs = read_inputs(&filename);
-    let map: Vec<&str> = inputs.split("\n").collect();
+    let map: Vec<&str> = inputs.lines().collect();
 
     let delta = (1, 3);
 

@@ -4,58 +4,64 @@ pub fn read_inputs(filename: &str) -> String {
     return fs::read_to_string(filename).expect("Couldn't read file");
 }
 
-pub fn split_lines_into_vec_int(input: &str) -> Vec<i64> {
-    return split_into_vec_int(input, "\n");
+pub trait LinesOf {
+    fn lines_of<T: std::str::FromStr>(&self) -> Vec<Option<T>>;
 }
 
-pub fn split_into_vec_int(input: &str, delimiter: &str) -> Vec<i64> {
-    return input
-        .split(delimiter)
-        .into_iter()
-        .filter(|&line| line.ne(""))
-        .map(|line| line.parse::<i64>().expect("Couldn't convert to i64"))
-        .collect();
+impl LinesOf for str {
+    fn lines_of<T: std::str::FromStr>(&self) -> Vec<Option<T>> {
+        self.lines().map(|line| line.parse::<T>().ok()).collect()
+    }
 }
 
-pub fn split_into_vec_usize(input: &str, delimiter: &str) -> Vec<usize> {
-    return input
-        .split(delimiter)
-        .into_iter()
-        .filter(|&line| line.ne(""))
-        .map(|line| line.parse::<usize>().expect("Couldn't convert to i64"))
-        .collect();
+pub trait SplitByBlankLines {
+    fn split_by_blank_lines(&self) -> std::str::Split<&str>;
 }
 
-pub fn run_function_and_sum_all(f: fn(&i64) -> i64, elements: &Vec<i64>) -> i64 {
-    return elements
-        .into_iter()
-        .map(|input| f(input))
-        .fold(0, |acc, elem| acc + elem);
+impl SplitByBlankLines for str {
+    fn split_by_blank_lines(&self) -> std::str::Split<&str> {
+        self.split("\n\n")
+    }
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;
-
     #[test]
-    fn test_split_lines_into_vec_int() {
-        let input = "1\n2\n999\n";
-
-        assert_eq!(vec![1, 2, 999], split_lines_into_vec_int(input));
+    fn test_lines_of_i64() {
+        let input = "1
+2
+3
+a";
+        assert_eq!(
+            vec![Some(1), Some(2), Some(3), None],
+            input.lines_of::<i64>()
+        );
+        assert_eq!(
+            vec![Some(1), Some(2), Some(3), None],
+            input.to_string().lines_of::<i64>()
+        );
+        assert_eq!(
+            vec![Some(1), Some(2), Some(3), None],
+            input.lines_of::<usize>()
+        );
     }
 
     #[test]
-    fn test_split_into_vec_int() {
-        let input = "1 | 2 | 999";
-        let delimiter = " | ";
+    fn test_split_by_blank_lines() {
+        let input = "ab
 
-        assert_eq!(vec![1, 2, 999], split_into_vec_int(input, &delimiter));
-    }
-
-    #[test]
-    fn test_split_into_vec_usize() {
-        let input = "1 | 2 | 999";
-        let delimiter = " | ";
-
-        assert_eq!(vec![1, 2, 999], split_into_vec_usize(input, &delimiter));
+cd";
+        assert_eq!(
+            vec!["ab", "cd"],
+            input.split_by_blank_lines().collect::<Vec<&str>>()
+        );
+        assert_eq!(
+            vec!["ab", "cd"],
+            input
+                .to_string()
+                .split_by_blank_lines()
+                .collect::<Vec<&str>>()
+        );
     }
 }

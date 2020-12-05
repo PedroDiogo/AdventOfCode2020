@@ -4,7 +4,11 @@ use self::advent::*;
 pub fn run() {
     let filename = "inputs/day1.txt";
     let inputs = read_inputs(&filename);
-    let inputs = split_lines_into_vec_int(&inputs);
+    let inputs = inputs
+        .lines_of::<i64>()
+        .into_iter()
+        .filter_map(|x| x)
+        .collect();
 
     let entries = find_two_entries_that_sum_to(&inputs, &2020).unwrap();
     let part_one = multiply_entries(&entries);

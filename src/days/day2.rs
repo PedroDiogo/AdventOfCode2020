@@ -6,7 +6,7 @@ use std::collections::HashMap;
 pub fn run() {
     let filename = "inputs/day2.txt";
     let inputs = read_inputs(&filename);
-    let inputs = inputs.split("\n").collect();
+    let inputs = inputs.lines().collect();
 
     let part_one = number_of_valid_passwords(&inputs, valid_password);
     println!("Part one: {}", part_one);

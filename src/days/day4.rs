@@ -10,12 +10,11 @@ const HEIGHT: &str = "hgt";
 const HAIR_COLOR: &str = "hcl";
 const EYE_COLOR: &str = "ecl";
 const PASSPORT_ID: &str = "pid";
-const COUNTRY_ID: &str = "cid";
 
 pub fn run() {
     let filename = "inputs/day4.txt";
     let inputs = read_inputs(&filename);
-    let passwords = split_inputs_into_password_lines(&inputs);
+    let passwords = inputs.split_by_blank_lines().collect();
 
     let part_one = count_valid_passwords(&passwords, is_valid_password);
     println!("Part one: {}", part_one);
@@ -36,9 +35,9 @@ fn count_valid_passwords(
 }
 
 fn parse_password(password_line: &str) -> HashMap<String, String> {
-    password_line.replace("\n", " ").trim().split(" ").fold(
-        HashMap::new(),
-        |mut hashmap, element| {
+    password_line
+        .split_whitespace()
+        .fold(HashMap::new(), |mut hashmap, element| {
             let element_parts: Vec<&str> = element.split(":").collect();
             let key = element_parts
                 .get(0)
@@ -50,12 +49,7 @@ fn parse_password(password_line: &str) -> HashMap<String, String> {
                 .to_string();
             hashmap.insert(key, value);
             hashmap
-        },
-    )
-}
-
-fn split_inputs_into_password_lines(inputs: &str) -> Vec<&str> {
-    inputs.split("\n\n").collect()
+        })
 }
 
 fn is_valid_password(password: &HashMap<String, String>) -> bool {
@@ -130,6 +124,8 @@ fn validate_passport_id(passport_id: &str) -> bool {
 mod tests {
     use super::*;
 
+    const COUNTRY_ID: &str = "cid";
+
     #[test]
     fn test_count_valid_passwords() {
         let inputs = "ecl:gry pid:860033327 eyr:2020 hcl:#fffffd
@@ -147,10 +143,7 @@ hcl:#cfa07d eyr:2025 pid:166559648
 iyr:2011 ecl:brn hgt:59in";
         assert_eq!(
             2,
-            count_valid_passwords(
-                &split_inputs_into_password_lines(&inputs),
-                is_valid_password
-            )
+            count_valid_passwords(&inputs.split_by_blank_lines().collect(), is_valid_password)
         );
     }
 
@@ -169,10 +162,12 @@ ecl:brn hgt:182cm pid:021572410 eyr:2020 byr:1992 cid:277
 hgt:59cm ecl:zzz
 eyr:2038 hcl:74454a iyr:2023
 pid:3556412378 byr:2007";
-        let passports = split_inputs_into_password_lines(&passports);
         assert_eq!(
             0,
-            count_valid_passwords(&passports, is_valid_complex_password)
+            count_valid_passwords(
+                &passports.split_by_blank_lines().collect(),
+                is_valid_complex_password
+            )
         );
     }
 
@@ -190,10 +185,12 @@ pid:545766238 ecl:hzl
 eyr:2022
 
 iyr:2010 hgt:158cm hcl:#b6652a ecl:blu byr:1944 eyr:2021 pid:093154719";
-        let passports = split_inputs_into_password_lines(&passports);
         assert_eq!(
             4,
-            count_valid_passwords(&passports, is_valid_complex_password)
+            count_valid_passwords(
+                &passports.split_by_blank_lines().collect(),
+                is_valid_complex_password
+            )
         );
     }
 
@@ -231,7 +228,7 @@ hgt:179cm
 hcl:#cfa07d eyr:2025 pid:166559648
 iyr:2011 ecl:brn hgt:59in";
 
-        let password_lines = split_inputs_into_password_lines(inputs);
+        let password_lines: Vec<&str> = inputs.split_by_blank_lines().collect();
         println!("{:?}", password_lines);
 
         assert_eq!(4, password_lines.len());
