@@ -1,3 +1,4 @@
+#![warn(clippy::all)]
 #[macro_use]
 extern crate scan_fmt;
 
@@ -18,10 +19,10 @@ fn main() {
 }
 
 fn get_day() -> i32 {
-    return env::args()
+    env::args()
         .collect::<Vec<String>>()
         .get(1)
         .expect("Need to pass one argument as the day number. Example: cargo run 1")
         .parse::<i32>()
-        .expect("Expecting first argument to be an integer");
+        .expect("Expecting first argument to be an integer")
 }

@@ -6,7 +6,7 @@ use std::collections::HashMap;
 pub fn run() {
     let filename = "inputs/day2.txt";
     let inputs = read_inputs(&filename);
-    let inputs = inputs.lines().collect();
+    let inputs: Vec<&str> = inputs.lines().collect();
 
     let part_one = number_of_valid_passwords(&inputs, valid_password);
     println!("Part one: {}", part_one);
@@ -16,7 +16,7 @@ pub fn run() {
 }
 
 fn number_of_valid_passwords(
-    passwords: &Vec<&str>,
+    passwords: &[&str],
     validator_function: fn(&usize, &usize, &char, &str) -> bool,
 ) -> usize {
     passwords
@@ -29,15 +29,11 @@ fn number_of_valid_passwords(
 }
 
 fn valid_password(min: &usize, max: &usize, character: &char, password: &str) -> bool {
-    return if let Some(character_hits) = character_distribution(password).get(character) {
-        if character_hits >= min && character_hits <= max {
-            true
-        } else {
-            false
-        }
+    if let Some(character_hits) = character_distribution(password).get(character) {
+        character_hits >= min && character_hits <= max
     } else {
         false
-    };
+    }
 }
 
 fn valid_password_part_two(
@@ -54,10 +50,9 @@ fn valid_password_part_two(
         .chars()
         .nth(*position_2 - 1)
         .expect("Expected a character in position 2");
-    let valid_password = char_position1 != char_position2
-        && (char_position1 == *character || char_position2 == *character);
 
-    valid_password
+    char_position1 != char_position2
+        && (char_position1 == *character || char_position2 == *character)
 }
 
 fn character_distribution(line: &str) -> HashMap<char, usize> {

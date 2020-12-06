@@ -8,7 +8,7 @@ pub fn run() {
 
     let delta = (1, 3);
 
-    let part_one = get_multiplied_slopes(&map, &vec![&delta]);
+    let part_one = get_multiplied_slopes(&map, &[&delta]);
     println!("Part one: {}", part_one);
 
     let deltas = vec![&(1, 1), &(1, 3), &(1, 5), &(1, 7), &(2, 1)];
@@ -16,7 +16,7 @@ pub fn run() {
     println!("Part two: {}", part_two);
 }
 
-fn get_multiplied_slopes(map: &Vec<&str>, deltas: &Vec<&(usize, usize)>) -> usize {
+fn get_multiplied_slopes(map: &[&str], deltas: &[&(usize, usize)]) -> usize {
     let map_size = (map.len(), map.first().unwrap().len());
 
     deltas.iter().fold(1, |mult, delta| {
@@ -24,9 +24,9 @@ fn get_multiplied_slopes(map: &Vec<&str>, deltas: &Vec<&(usize, usize)>) -> usiz
     })
 }
 
-fn get_number_of_trees(map: &Vec<&str>, coordinates: &Vec<(usize, usize)>) -> usize {
+fn get_number_of_trees(map: &[&str], coordinates: &[(usize, usize)]) -> usize {
     coordinates
-        .into_iter()
+        .iter()
         .filter(|coordinate| {
             map.get(coordinate.0)
                 .unwrap()

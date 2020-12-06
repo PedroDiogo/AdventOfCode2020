@@ -13,7 +13,7 @@ pub fn run() {
     let part_one = seat_ids.clone().max().unwrap();
     println!("Part one: {}", part_one);
 
-    let part_two = find_gap(&seat_ids.collect());
+    let part_two = find_gap(&seat_ids.collect::<Vec<usize>>());
     println!("Part two: {}", part_two.unwrap());
 }
 
@@ -28,9 +28,9 @@ fn convert_from_binary(line: &str) -> Result<usize, std::num::ParseIntError> {
     usize::from_str_radix(line, 2)
 }
 
-fn find_gap(list: &Vec<usize>) -> Option<usize> {
-    let mut sorted_list = list.clone();
-    sorted_list.sort();
+fn find_gap(list: &[usize]) -> Option<usize> {
+    let mut sorted_list = list.to_owned();
+    sorted_list.sort_unstable();
 
     let mut gap = None;
     for idx in 1..sorted_list.len() {
@@ -62,7 +62,7 @@ mod tests {
 
     #[test]
     fn test_find_gap() {
-        assert_eq!(Some(4), find_gap(&vec![1, 2, 3, 5, 6]));
-        assert_eq!(Some(4), find_gap(&vec![1, 2, 3, 5]));
+        assert_eq!(Some(4), find_gap(&[1, 2, 3, 5, 6]));
+        assert_eq!(Some(4), find_gap(&[1, 2, 3, 5]));
     }
 }

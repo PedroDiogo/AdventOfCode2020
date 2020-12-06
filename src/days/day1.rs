@@ -4,7 +4,7 @@ use self::advent::*;
 pub fn run() {
     let filename = "inputs/day1.txt";
     let inputs = read_inputs(&filename);
-    let inputs = inputs
+    let inputs: Vec<i64> = inputs
         .lines_of::<i64>()
         .into_iter()
         .filter_map(|x| x)
@@ -19,40 +19,40 @@ pub fn run() {
     println!("Part two: {}", part_two);
 }
 
-fn multiply_entries(entries: &Vec<i64>) -> i64 {
-    entries.iter().fold(1, |acc, entry| acc * entry)
+fn multiply_entries(entries: &[i64]) -> i64 {
+    entries.iter().product()
 }
 
-fn find_three_entries_that_sum_to(lines: &Vec<i64>, sum: &i64) -> Option<Vec<i64>> {
-    let mut sorted_entries = lines.clone();
-    sorted_entries.sort();
+fn find_three_entries_that_sum_to(lines: &[i64], sum: &i64) -> Option<Vec<i64>> {
+    let mut sorted_entries = lines.to_owned();
+    sorted_entries.sort_unstable();
 
     let entries = sorted_entries
         .iter()
         .find_map(|entry| find_two_entries_that_sum_to(lines, &(*sum - *entry)));
 
-    return if let Some(mut entries) = entries {
+    if let Some(mut entries) = entries {
         entries.push(sum - entries[0] - entries[1]);
         Some(entries)
     } else {
         None
-    };
+    }
 }
 
-fn find_two_entries_that_sum_to(lines: &Vec<i64>, sum: &i64) -> Option<Vec<i64>> {
-    let mut sorted_entries = lines.clone();
-    sorted_entries.sort();
+fn find_two_entries_that_sum_to(lines: &[i64], sum: &i64) -> Option<Vec<i64>> {
+    let mut sorted_entries = lines.to_owned();
+    sorted_entries.sort_unstable();
 
     let entry_idx = &sorted_entries
         .iter()
         .find_map(|entry| sorted_entries.binary_search(&(*sum - entry)).ok());
 
-    return if let Some(entry_idx) = entry_idx {
-        let entry = sorted_entries.get(*entry_idx).unwrap().clone();
+    if let Some(entry_idx) = entry_idx {
+        let entry = *sorted_entries.get(*entry_idx).unwrap();
         Some(vec![entry, *sum - entry])
     } else {
         Option::None
-    };
+    }
 }
 
 #[cfg(test)]

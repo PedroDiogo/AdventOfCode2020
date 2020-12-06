@@ -14,7 +14,7 @@ const PASSPORT_ID: &str = "pid";
 pub fn run() {
     let filename = "inputs/day4.txt";
     let inputs = read_inputs(&filename);
-    let passwords = inputs.split_by_blank_lines().collect();
+    let passwords: Vec<&str> = inputs.split_by_blank_lines().collect();
 
     let part_one = count_valid_passwords(&passwords, is_valid_password);
     println!("Part one: {}", part_one);
@@ -24,7 +24,7 @@ pub fn run() {
 }
 
 fn count_valid_passwords(
-    password_lines: &Vec<&str>,
+    password_lines: &[&str],
     validator_function: fn(&HashMap<String, String>) -> bool,
 ) -> usize {
     password_lines
@@ -38,7 +38,7 @@ fn parse_password(password_line: &str) -> HashMap<String, String> {
     password_line
         .split_whitespace()
         .fold(HashMap::new(), |mut hashmap, element| {
-            let element_parts: Vec<&str> = element.split(":").collect();
+            let element_parts: Vec<&str> = element.split(':').collect();
             let key = element_parts
                 .get(0)
                 .expect("Expected to have a key")
@@ -74,29 +74,20 @@ fn is_valid_complex_password(password: &HashMap<String, String>) -> bool {
 }
 
 fn validate_birth_year(year: &str) -> bool {
-    match year.parse::<usize>() {
-        Ok(1920..=2002) => true,
-        _ => false,
-    }
+    matches!(year.parse::<usize>(), Ok(1920..=2002))
 }
 
 fn validate_issue_year(year: &str) -> bool {
-    match year.parse::<usize>() {
-        Ok(2010..=2020) => true,
-        _ => false,
-    }
+    matches!(year.parse::<usize>(), Ok(2010..=2020))
 }
 
 fn validate_expiration_year(year: &str) -> bool {
-    match year.parse::<usize>() {
-        Ok(2020..=2030) => true,
-        _ => false,
-    }
+    matches!(year.parse::<usize>(), Ok(2020..=2030))
 }
 
 fn validate_height(height: &str) -> bool {
     let (height, unit) = scan_fmt_some!(height, "{d}{/(cm|in)/}", u64, String);
-    let unit: &str = &unit.unwrap_or("".to_string());
+    let unit: &str = &unit.unwrap_or_else(|| String::from(""));
 
     match (height, unit) {
         (Some(150..=193), "cm") => true,
@@ -110,10 +101,10 @@ fn validate_hair_color(hair_color: &str) -> bool {
 }
 
 fn validate_eye_color(eye_color: &str) -> bool {
-    match eye_color {
-        "amb" | "blu" | "brn" | "gry" | "grn" | "hzl" | "oth" => true,
-        _ => false,
-    }
+    matches!(
+        eye_color,
+        "amb" | "blu" | "brn" | "gry" | "grn" | "hzl" | "oth"
+    )
 }
 
 fn validate_passport_id(passport_id: &str) -> bool {
@@ -143,7 +134,10 @@ hcl:#cfa07d eyr:2025 pid:166559648
 iyr:2011 ecl:brn hgt:59in";
         assert_eq!(
             2,
-            count_valid_passwords(&inputs.split_by_blank_lines().collect(), is_valid_password)
+            count_valid_passwords(
+                &inputs.split_by_blank_lines().collect::<Vec<&str>>(),
+                is_valid_password
+            )
         );
     }
 
@@ -165,7 +159,7 @@ pid:3556412378 byr:2007";
         assert_eq!(
             0,
             count_valid_passwords(
-                &passports.split_by_blank_lines().collect(),
+                &passports.split_by_blank_lines().collect::<Vec<&str>>(),
                 is_valid_complex_password
             )
         );
@@ -188,7 +182,7 @@ iyr:2010 hgt:158cm hcl:#b6652a ecl:blu byr:1944 eyr:2021 pid:093154719";
         assert_eq!(
             4,
             count_valid_passwords(
-                &passports.split_by_blank_lines().collect(),
+                &passports.split_by_blank_lines().collect::<Vec<&str>>(),
                 is_valid_complex_password
             )
         );
