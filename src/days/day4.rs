@@ -1,3 +1,5 @@
+extern crate rayon;
+use self::rayon::prelude::*;
 use super::lib::*;
 use std::collections::HashMap;
 
@@ -25,7 +27,7 @@ fn count_valid_passwords(
     validator_function: fn(&HashMap<String, String>) -> bool,
 ) -> usize {
     password_lines
-        .iter()
+        .par_iter()
         .map(|password_line| parse_password(password_line))
         .filter(|password| validator_function(password))
         .count()
