@@ -1,7 +1,6 @@
-extern crate advent;
-use self::advent::*;
+use super::lib::*;
 
-pub fn run() {
+pub fn run() -> (Option<String>, Option<String>) {
     let filename = "inputs/day1.txt";
     let inputs = read_inputs(&filename);
     let inputs: Vec<i64> = inputs
@@ -12,11 +11,11 @@ pub fn run() {
 
     let entries = find_two_entries_that_sum_to(&inputs, &2020).unwrap();
     let part_one = multiply_entries(&entries);
-    println!("Part one: {}", part_one);
 
     let entries = find_three_entries_that_sum_to(&inputs, &2020).unwrap();
     let part_two = multiply_entries(&entries);
-    println!("Part two: {}", part_two);
+
+    (Some(part_one.to_string()), Some(part_two.to_string()))
 }
 
 fn multiply_entries(entries: &[i64]) -> i64 {

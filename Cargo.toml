@@ -3,9 +3,12 @@ name = "advent_of_code_2020"
 version = "0.1.0"
 authors = ["Pedro Diogo"]
 
-[lib]
-name = "advent"
-path ="./src/lib/lib.rs"
-
 [dependencies]
 scan_fmt = "0.2.5"
+
+[dev-dependencies]
+criterion = "0.3.3"
+
+[[bench]]
+name = "benchmarks"
+harness = false

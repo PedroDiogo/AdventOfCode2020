@@ -1,6 +1,4 @@
-extern crate advent;
-use self::advent::*;
-
+use super::lib::*;
 use std::collections::HashMap;
 
 const BIRTH_YEAR: &str = "byr";
@@ -11,16 +9,15 @@ const HAIR_COLOR: &str = "hcl";
 const EYE_COLOR: &str = "ecl";
 const PASSPORT_ID: &str = "pid";
 
-pub fn run() {
+pub fn run() -> (Option<String>, Option<String>) {
     let filename = "inputs/day4.txt";
     let inputs = read_inputs(&filename);
     let passwords: Vec<&str> = inputs.split_by_blank_lines().collect();
 
     let part_one = count_valid_passwords(&passwords, is_valid_password);
-    println!("Part one: {}", part_one);
-
     let part_two = count_valid_passwords(&passwords, is_valid_complex_password);
-    println!("Part two: {}", part_two);
+
+    (Some(part_one.to_string()), Some(part_two.to_string()))
 }
 
 fn count_valid_passwords(

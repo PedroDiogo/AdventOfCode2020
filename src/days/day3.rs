@@ -1,7 +1,6 @@
-extern crate advent;
-use self::advent::*;
+use super::lib::*;
 
-pub fn run() {
+pub fn run() -> (Option<String>, Option<String>) {
     let filename = "inputs/day3.txt";
     let inputs = read_inputs(&filename);
     let map: Vec<&str> = inputs.lines().collect();
@@ -9,11 +8,11 @@ pub fn run() {
     let delta = (1, 3);
 
     let part_one = get_multiplied_slopes(&map, &[&delta]);
-    println!("Part one: {}", part_one);
 
     let deltas = vec![&(1, 1), &(1, 3), &(1, 5), &(1, 7), &(2, 1)];
     let part_two = get_multiplied_slopes(&map, &deltas);
-    println!("Part two: {}", part_two);
+
+    (Some(part_one.to_string()), Some(part_two.to_string()))
 }
 
 fn get_multiplied_slopes(map: &[&str], deltas: &[&(usize, usize)]) -> usize {

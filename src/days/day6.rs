@@ -1,9 +1,7 @@
-extern crate advent;
-use self::advent::*;
-
+use super::lib::*;
 use std::collections::HashSet;
 
-pub fn run() {
+pub fn run() -> (Option<String>, Option<String>) {
     let filename = "inputs/day6.txt";
     let inputs = read_inputs(&filename);
     let group_questions = inputs.split_by_blank_lines();
@@ -14,13 +12,12 @@ pub fn run() {
         .map(|group_answers| group_answers.len())
         .sum();
 
-    println!("Part one: {}", part_one);
-
     let part_two: usize = group_questions
         .map(get_unanimous_answers)
         .map(|group_answers| group_answers.len())
         .sum();
-    println!("Part two: {}", part_two);
+
+    (Some(part_one.to_string()), Some(part_two.to_string()))
 }
 
 fn get_unique_group_answers(group_answers: &str) -> HashSet<char> {

@@ -1,7 +1,6 @@
-extern crate advent;
-use self::advent::*;
+use super::lib::*;
 
-pub fn run() {
+pub fn run() -> (Option<String>, Option<String>) {
     let filename = "inputs/day5.txt";
     let inputs = read_inputs(&filename);
 
@@ -11,10 +10,9 @@ pub fn run() {
         .filter_map(|line| convert_from_binary(&line).ok());
 
     let part_one = seat_ids.clone().max().unwrap();
-    println!("Part one: {}", part_one);
+    let part_two = find_gap(&seat_ids.collect::<Vec<usize>>()).unwrap();
 
-    let part_two = find_gap(&seat_ids.collect::<Vec<usize>>());
-    println!("Part two: {}", part_two.unwrap());
+    (Some(part_one.to_string()), Some(part_two.to_string()))
 }
 
 fn convert_boarding_pass_to_binary(line: &str) -> String {

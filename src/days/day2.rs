@@ -1,18 +1,16 @@
-extern crate advent;
-use self::advent::*;
-
+use super::lib::*;
 use std::collections::HashMap;
 
-pub fn run() {
+pub fn run() -> (Option<String>, Option<String>) {
     let filename = "inputs/day2.txt";
     let inputs = read_inputs(&filename);
     let inputs: Vec<&str> = inputs.lines().collect();
 
     let part_one = number_of_valid_passwords(&inputs, valid_password);
-    println!("Part one: {}", part_one);
 
     let part_two = number_of_valid_passwords(&inputs, valid_password_part_two);
-    println!("Part two: {}", part_two);
+
+    (Some(part_one.to_string()), Some(part_two.to_string()))
 }
 
 fn number_of_valid_passwords(

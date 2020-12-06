@@ -1,15 +1,14 @@
 extern crate advent;
 use self::advent::*;
 
-pub fn run() {
+pub fn run() -> (Option<String>, Option<String>) {
     let filename = "inputs/day__.txt";
     let inputs = read_inputs(&filename);
 
-    let part_one = 0;
-    println!("Part one: {}", part_one);
+    let part_one = None;
+    let part_two = None;
 
-    let part_two = 0;
-    println!("Part two: {}", part_two);
+    (part_one, part_two)
 }
 
 #[cfg(test)]
