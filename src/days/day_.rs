@@ -1,5 +1,4 @@
-extern crate advent;
-use self::advent::*;
+use super::lib::*;
 
 pub fn run() -> (Option<String>, Option<String>) {
     let filename = "inputs/day__.txt";
