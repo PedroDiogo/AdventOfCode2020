@@ -1,5 +1,7 @@
 use super::lib::*;
 
+use std::collections::HashMap;
+
 extern crate itertools;
 use self::itertools::sorted;
 
@@ -16,7 +18,7 @@ pub fn run() -> (Option<String>, Option<String>) {
 
     let jumps = get_jumps_for_longest_path(&inputs);
     let part_one = Some((jumps.0 * jumps.1).to_string());
-    let part_two = None;
+    let part_two = Some(get_number_of_paths(&inputs).to_string());
 
     (part_one, part_two)
 }
@@ -33,6 +35,24 @@ fn get_jumps_for_longest_path(inputs: &[usize]) -> (usize, usize) {
     (jumps.0, jumps.1)
 }
 
+fn get_number_of_paths(inputs: &[usize]) -> usize {
+    let max_input = *inputs.iter().max().unwrap();
+    let mut initial_paths_for_node: HashMap<usize, usize> = HashMap::with_capacity(inputs.len());
+    initial_paths_for_node.entry(max_input).or_insert(1);
+
+    *sorted(inputs.iter())
+        .rev()
+        .skip(1)
+        .fold(initial_paths_for_node, |mut paths_for_node, node| {
+            let number_of_paths = (1..=3).fold(0, |acc, index| {
+                acc + paths_for_node.get(&(node + index)).or(Some(&0)).unwrap()
+            });
+            paths_for_node.insert(*node, number_of_paths);
+            paths_for_node
+        })
+        .get(&0)
+        .unwrap()
+}
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -50,5 +70,11 @@ mod tests {
         let test_case_2 = get_jumps_for_longest_path(&TEST_CASE_2);
         assert_eq!(22, test_case_2.0);
         assert_eq!(10, test_case_2.1);
+    }
+
+    #[test]
+    fn test_get_number_of_paths() {
+        assert_eq!(8, get_number_of_paths(&TEST_CASE_1));
+        assert_eq!(19208, get_number_of_paths(&TEST_CASE_2));
     }
 }
