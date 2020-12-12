@@ -12,26 +12,9 @@ pub fn run() -> (Option<String>, Option<String>) {
             .accumulator
             .to_string(),
     );
-    let part_two = None;
+    let part_two = Some(fix_and_run_program(&program).accumulator.to_string());
 
     (part_one, part_two)
-}
-
-fn run_program_and_stop_on_first_repeated(program: &[Instruction]) -> State {
-    let mut state = State::EMPTY;
-    let mut instruction_history = HashSet::new();
-
-    loop {
-        let instruction = program
-            .get(state.program_counter)
-            .expect("Expected instruction");
-        state = run_instruction(instruction, &state);
-
-        if instruction_history.contains(&state.program_counter) {
-            break state;
-        }
-        instruction_history.insert(state.program_counter);
-    }
 }
 
 fn parse_program(program: &str) -> Vec<Instruction> {
@@ -48,6 +31,27 @@ fn parse_program(program: &str) -> Vec<Instruction> {
                 .expect("Expected an integer"),
         })
         .collect()
+}
+
+fn run_program_and_stop_on_first_repeated(program: &[Instruction]) -> State {
+    let mut state = State::EMPTY;
+    let mut instruction_history = HashSet::new();
+
+    loop {
+        let instruction = program.get(state.program_counter);
+
+        if instruction.is_none() {
+            break state;
+        }
+
+        let instruction = program.get(state.program_counter).unwrap();
+        state = run_instruction(instruction, &state);
+
+        if instruction_history.contains(&state.program_counter) {
+            break state;
+        }
+        instruction_history.insert(state.program_counter);
+    }
 }
 
 fn run_instruction(instruction: &Instruction, state: &State) -> State {
@@ -67,6 +71,29 @@ fn run_instruction(instruction: &Instruction, state: &State) -> State {
     }
 }
 
+fn fix_and_run_program(program: &[Instruction]) -> State {
+    let mut starting_idx = 0;
+
+    loop {
+        let mut program = program.to_vec();
+        let position = program
+            .iter()
+            .skip(starting_idx)
+            .position(|instruction| {
+                matches!(instruction.operation, Operation::NOP | Operation::JMP)
+            })
+            .unwrap();
+
+        let mut instruction = program.get_mut(starting_idx + position).unwrap();
+        starting_idx += position + 1;
+        instruction.operation = instruction.operation.opposite_instruction();
+        let state = run_program_and_stop_on_first_repeated(&program);
+        if state.program_counter == program.len() {
+            break state;
+        }
+    }
+}
+
 #[derive(Debug, PartialEq)]
 struct State {
     accumulator: i64,
@@ -80,7 +107,7 @@ impl State {
     };
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 enum Operation {
     NOP,
     ACC,
@@ -96,9 +123,17 @@ impl Operation {
             _ => None,
         }
     }
+
+    fn opposite_instruction(&self) -> Self {
+        match self {
+            Operation::NOP => Operation::JMP,
+            Operation::JMP => Operation::NOP,
+            _ => *self,
+        }
+    }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 struct Instruction {
     operation: Operation,
     argument: i64,
@@ -107,6 +142,16 @@ struct Instruction {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    const TEST_CASE: &str = "nop +0
+acc +1
+jmp +4
+acc +3
+jmp -3
+acc -99
+acc +1
+jmp -4
+acc +6";
 
     #[test]
     fn test_parse_program() {
@@ -141,20 +186,17 @@ jmp +4";
 
     #[test]
     fn test_run_program_and_stop_on_first_repeated() {
-        let program = "nop +0
-acc +1
-jmp +4
-acc +3
-jmp -3
-acc -99
-acc +1
-jmp -4
-acc +6";
-        let program = parse_program(program);
+        let program = parse_program(&TEST_CASE);
         assert_eq!(
             5,
             run_program_and_stop_on_first_repeated(&program).accumulator
         );
+    }
+
+    #[test]
+    fn test_fix_and_run_program() {
+        let program = parse_program(&TEST_CASE);
+        assert_eq!(8, fix_and_run_program(&program).accumulator);
     }
 
     #[test]
