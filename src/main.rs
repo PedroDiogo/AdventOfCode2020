@@ -18,6 +18,7 @@ fn main() {
         7 => day7::run(),
         8 => day8::run(),
         10 => day10::run(),
+        13 => day13::run(),
         _ => (None, None),
     };
 
