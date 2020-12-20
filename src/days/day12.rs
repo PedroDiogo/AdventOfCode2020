@@ -6,6 +6,12 @@ const START_POSITION: Position = Position {
     angle: 90,
 };
 
+const WAYPOINT_START_POSITION: Position = Position {
+    x: 10,
+    y: 1,
+    angle: 90,
+};
+
 pub fn run() -> (Option<String>, Option<String>) {
     let filename = "inputs/day12.txt";
     let inputs = read_inputs(&filename);
@@ -14,13 +20,19 @@ pub fn run() -> (Option<String>, Option<String>) {
         .filter_map(|line| Move::from_str(line))
         .collect();
 
-    let final_position = run_all_moves(&START_POSITION, &inputs);
+    let part_one_final_position = run_all_moves(&START_POSITION, &inputs);
     let part_one = Some(
         START_POSITION
-            .manhattan_distance(&final_position)
+            .manhattan_distance(&part_one_final_position)
             .to_string(),
     );
-    let part_two = None;
+    let part_two_final_position =
+        run_all_moves_relative_to_waypoint(&START_POSITION, &WAYPOINT_START_POSITION, &inputs);
+    let part_two = Some(
+        START_POSITION
+            .manhattan_distance(&part_two_final_position)
+            .to_string(),
+    );
 
     (part_one, part_two)
 }
@@ -31,6 +43,38 @@ fn run_all_moves(starting_position: &Position, moves: &[Move]) -> Position {
         .fold(*starting_position, |current_position, current_move| {
             current_position.move_position(current_move)
         })
+}
+
+fn run_all_moves_relative_to_waypoint(
+    starting_position: &Position,
+    waypoint_starting_position: &Position,
+    moves: &[Move],
+) -> Position {
+    moves
+        .iter()
+        .fold(
+            (*starting_position, *waypoint_starting_position),
+            |(current_position, current_waypoint_position), current_move| {
+                let mut new_position = current_position;
+                let mut new_waypoint = current_waypoint_position;
+
+                match current_move.move_type {
+                    MoveType::North | MoveType::South | MoveType::East | MoveType::West => {
+                        new_waypoint = current_waypoint_position.move_position(&current_move);
+                    }
+                    MoveType::Right | MoveType::Left => {
+                        new_waypoint =
+                            current_waypoint_position.rotate_around_origin(&current_move);
+                    }
+                    MoveType::Forward => {
+                        new_position = current_position
+                            .move_to_waypoint(&current_move, &current_waypoint_position);
+                    }
+                };
+                (new_position, new_waypoint)
+            },
+        )
+        .0
 }
 
 #[derive(Debug, PartialEq)]
@@ -88,8 +132,62 @@ struct Position {
 }
 
 impl Position {
+    const ORIGIN: Position = Position {
+        x: 0,
+        y: 0,
+        angle: 0,
+    };
+
     fn manhattan_distance(&self, point: &Position) -> i32 {
         (self.x - point.x).abs() + (self.y - point.y).abs()
+    }
+
+    fn rotate_around_origin(&self, move_desc: &Move) -> Self {
+        let angle = Self::ORIGIN.move_position(move_desc).angle;
+        match angle {
+            90 => Position {
+                x: self.y,
+                y: -self.x,
+                ..*self
+            },
+            180 => Position {
+                x: -self.x,
+                y: -self.y,
+                ..*self
+            },
+            270 => Position {
+                x: -self.y,
+                y: self.x,
+                ..*self
+            },
+            _ => *self,
+        }
+    }
+
+    fn move_to_waypoint(&self, move_desc: &Move, waypoint_position: &Position) -> Self {
+        let vertical_move = match waypoint_position.y {
+            y if y >= 0 => Move {
+                move_type: MoveType::North,
+                units: move_desc.units * (y as usize),
+            },
+            y => Move {
+                move_type: MoveType::South,
+                units: move_desc.units * (-y as usize),
+            },
+        };
+        let horizontal_move = match waypoint_position.x {
+            x if x >= 0 => Move {
+                move_type: MoveType::East,
+                units: move_desc.units * (x as usize),
+            },
+            x => Move {
+                move_type: MoveType::West,
+                units: move_desc.units * (-x as usize),
+            },
+        };
+
+        self.move_position(&vertical_move)
+            .move_position(&horizontal_move)
     }
 
     fn move_type_from_angle(&self) -> Option<MoveType> {
@@ -142,6 +240,12 @@ impl Position {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    const TEST_CASE_1: &str = "F10
+N3
+F7
+R90
+F11";
 
     #[test]
     fn test_move_from_str() {
@@ -350,13 +454,136 @@ mod tests {
 
     #[test]
     fn test_run_all_moves() {
-        let moves = "F10
-N3
-F7
-R90
-F11";
-        let moves: Vec<Move> = moves.lines().filter_map(|x| Move::from_str(x)).collect();
+        let moves: Vec<Move> = TEST_CASE_1
+            .lines()
+            .filter_map(|x| Move::from_str(x))
+            .collect();
         let final_position = run_all_moves(&START_POSITION, &moves);
         assert_eq!(25, START_POSITION.manhattan_distance(&final_position));
+    }
+
+    #[test]
+    fn test_run_all_moves_relative_to_waypoint() {
+        let moves: Vec<Move> = TEST_CASE_1
+            .lines()
+            .filter_map(|x| Move::from_str(x))
+            .collect();
+        let final_position =
+            run_all_moves_relative_to_waypoint(&START_POSITION, &WAYPOINT_START_POSITION, &moves);
+        assert_eq!(286, START_POSITION.manhattan_distance(&final_position));
+    }
+
+    #[test]
+    fn test_rotate_around_origin() {
+        let starting_position = Position {
+            x: 10,
+            y: 4,
+            angle: 90,
+        };
+        let right_one = Position {
+            x: 4,
+            y: -10,
+            angle: 90,
+        };
+        let right_two = Position {
+            x: -10,
+            y: -4,
+            angle: 90,
+        };
+        let right_three = Position {
+            x: -4,
+            y: 10,
+            angle: 90,
+        };
+
+        assert_eq!(
+            right_one,
+            starting_position.rotate_around_origin(&Move {
+                move_type: MoveType::Right,
+                units: 90
+            })
+        );
+        assert_eq!(
+            right_two,
+            starting_position.rotate_around_origin(&Move {
+                move_type: MoveType::Right,
+                units: 180
+            })
+        );
+        assert_eq!(
+            right_three,
+            starting_position.rotate_around_origin(&Move {
+                move_type: MoveType::Right,
+                units: 270
+            })
+        );
+        assert_eq!(
+            starting_position,
+            starting_position.rotate_around_origin(&Move {
+                move_type: MoveType::Right,
+                units: 360
+            })
+        );
+        assert_eq!(
+            right_one,
+            starting_position.rotate_around_origin(&Move {
+                move_type: MoveType::Right,
+                units: 360 + 90
+            })
+        );
+
+        assert_eq!(
+            right_three,
+            starting_position.rotate_around_origin(&Move {
+                move_type: MoveType::Left,
+                units: 90
+            })
+        );
+        assert_eq!(
+            right_two,
+            starting_position.rotate_around_origin(&Move {
+                move_type: MoveType::Left,
+                units: 180
+            })
+        );
+        assert_eq!(
+            right_one,
+            starting_position.rotate_around_origin(&Move {
+                move_type: MoveType::Left,
+                units: 270
+            })
+        );
+        assert_eq!(
+            starting_position,
+            starting_position.rotate_around_origin(&Move {
+                move_type: MoveType::Left,
+                units: 360
+            })
+        );
+        assert_eq!(
+            right_three,
+            starting_position.rotate_around_origin(&Move {
+                move_type: MoveType::Left,
+                units: 360 + 90
+            })
+        );
+    }
+
+    #[test]
+    fn test_move_to_waypoint() {
+        assert_eq!(
+            Position {
+                x: 100,
+                y: 10,
+                ..START_POSITION
+            },
+            START_POSITION.move_to_waypoint(
+                &Move {
+                    move_type: MoveType::Forward,
+                    units: 10
+                },
+                &WAYPOINT_START_POSITION
+            )
+        );
     }
 }
