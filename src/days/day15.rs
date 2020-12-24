@@ -11,7 +11,7 @@ pub fn run() -> (Option<String>, Option<String>) {
         .collect();
 
     let part_one = Some(get_nth_spoken_number(&starting_list, &2020).to_string());
-    let part_two = None;
+    let part_two = Some(get_nth_spoken_number(&starting_list, &30000000).to_string());
 
     (part_one, part_two)
 }
