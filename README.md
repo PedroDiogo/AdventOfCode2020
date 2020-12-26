@@ -10,8 +10,8 @@ cargo run day_number
 
 ## Solved problems
 
-| Day    | Part One           | Part Two           |
-|--------|:------------------:|:------------------:|
+| Day    |      Part One      |      Part Two      |
+| ------ | :----------------: | :----------------: |
 | Day 1  | :heavy_check_mark: | :heavy_check_mark: |
 | Day 2  | :heavy_check_mark: | :heavy_check_mark: |
 | Day 3  | :heavy_check_mark: | :heavy_check_mark: |
@@ -27,3 +27,4 @@ cargo run day_number
 | Day 13 | :heavy_check_mark: | :heavy_check_mark: |
 | Day 14 | :heavy_check_mark: | :heavy_check_mark: |
 | Day 15 | :heavy_check_mark: | :heavy_check_mark: |
+| Day 16 | :heavy_check_mark: |                    |
