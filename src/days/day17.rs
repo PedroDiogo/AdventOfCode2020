@@ -9,28 +9,36 @@ pub fn run() -> (Option<String>, Option<String>) {
     let filename = "inputs/day17.txt";
     let inputs = read_inputs(&filename);
 
-    let mut grid = Grid::from_str(&inputs, &0);
-    for _ in 0..6 {
+    let grid_3d = run_n_times(&Grid::from_str(&inputs, &3), &6);
+    let part_one = Some(grid_3d.number_of_active_cells().to_string());
+
+    let grid_4d = run_n_times(&Grid::from_str(&inputs, &4), &6);
+    let part_two = Some(grid_4d.number_of_active_cells().to_string());
+
+    (part_one, part_two)
+}
+
+fn run_n_times(grid: &Grid, n: &usize) -> Grid {
+    let mut grid = grid.clone();
+    for _ in 0..*n {
         grid = grid.next_iteration();
     }
 
-    let part_one = Some(grid.number_of_active_cells().to_string());
-    let part_two = None;
-
-    (part_one, part_two)
+    grid
 }
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 struct Grid {
     map: HashMap<Vec<isize>, PositionType>,
+    dimensions: usize,
 }
 
 impl Grid {
-    pub fn new(map: HashMap<Vec<isize>, PositionType>) -> Self {
-        Self { map }
+    pub fn new(map: HashMap<Vec<isize>, PositionType>, dimensions: usize) -> Self {
+        Self { map, dimensions }
     }
 
-    pub fn from_str(grid_str: &str, z: &isize) -> Self {
+    pub fn from_str(grid_str: &str, dimensions: &usize) -> Self {
         let map = grid_str
             .lines()
             .enumerate()
@@ -39,17 +47,17 @@ impl Grid {
                     .enumerate()
                     .filter(|(_, c)| PositionType::from_str(&c).is_some())
                     .map(|(col, c)| {
-                        (
-                            vec![row as isize, col as isize, *z],
-                            PositionType::from_str(&c).unwrap(),
-                        )
+                        let mut coordinate = vec![row as isize, col as isize];
+                        coordinate.resize(*dimensions, 0);
+
+                        (coordinate, PositionType::from_str(&c).unwrap())
                     })
                     .collect::<Vec<(Vec<isize>, PositionType)>>()
             })
             .flatten()
             .filter(|(_, position_type)| position_type == &PositionType::ACTIVE)
             .collect();
-        Grid::new(map)
+        Grid::new(map, *dimensions)
     }
 
     pub fn get(&self, coordinates: &[isize]) -> Option<&PositionType> {
@@ -60,26 +68,36 @@ impl Grid {
         self.map.len()
     }
 
-    fn neightbours_coordinates(&self, coordinates: &[isize]) -> Vec<Vec<isize>> {
+    fn neighbours_coordinates(&self, coordinates: &[isize]) -> Vec<Vec<isize>> {
         let positions = [-1, 0, 1];
-        positions
+
+        let mut delta_coordinates: Vec<Vec<isize>> = positions
             .iter()
             .cartesian_product(positions.iter())
-            .cartesian_product(positions.iter())
-            .map(|x| vec![*x.0.0, *x.0.1, *x.1])
-            .map(|x| {
-                vec![
-                    x[0] + coordinates[0],
-                    x[1] + coordinates[1],
-                    x[2] + coordinates[2],
-                ]
-            })
+            .map(|(left, right)| vec![*left, *right])
+            .collect();
+
+        for _ in 2..coordinates.len() {
+            delta_coordinates = delta_coordinates
+                .iter()
+                .cartesian_product(positions.iter())
+                .map(|(left, right)| {
+                    let mut left = left.clone();
+                    left.push(*right);
+                    left
+                })
+                .collect();
+        }
+
+        delta_coordinates
+            .iter()
+            .map(|delta| add_position_by_position(&delta, &coordinates))
             .filter(|x| x != &coordinates.to_vec())
             .collect()
     }
 
     fn active_neighbours(&self, coordinates: &[isize]) -> usize {
-        self.neightbours_coordinates(coordinates)
+        self.neighbours_coordinates(coordinates)
             .iter()
             .filter_map(|position| self.get(&position))
             .filter(|x| **x == PositionType::ACTIVE)
@@ -91,7 +109,7 @@ impl Grid {
             .map
             .keys()
             .map(|x| {
-                let mut neighbours = self.neightbours_coordinates(x);
+                let mut neighbours = self.neighbours_coordinates(x);
                 neighbours.push(x.clone());
                 neighbours
             })
@@ -107,7 +125,7 @@ impl Grid {
             .filter(|(_, position_type)| position_type == &PositionType::ACTIVE)
             .collect();
 
-        Grid::new(map)
+        Grid::new(map, self.dimensions)
     }
 
     fn next_position_for_coordinate(&self, coordinates: &[isize]) -> PositionType {
@@ -133,6 +151,13 @@ impl PositionType {
             _ => None,
         }
     }
+}
+
+fn add_position_by_position(a: &[isize], b: &[isize]) -> Vec<isize> {
+    a.iter()
+        .zip(b.iter())
+        .map(|(left, right)| left + right)
+        .collect()
 }
 
 #[cfg(test)]
@@ -169,7 +194,7 @@ mod tests {
                 PositionType::ACTIVE,
             ],
         ];
-        let grid = Grid::from_str(TEST_CASE_1, &0);
+        let grid = Grid::from_str(TEST_CASE_1, &3);
 
         for (row_idx, row) in expected.iter().enumerate() {
             for (col_idx, position) in row.iter().enumerate() {
@@ -183,14 +208,22 @@ mod tests {
 
     #[test]
     fn test_grid_active_neighbours() {
-        let grid = Grid::from_str(TEST_CASE_1, &0);
+        let grid = Grid::from_str(TEST_CASE_1, &3);
         assert_eq!(5, grid.active_neighbours(&[1, 1, 1]));
         assert_eq!(1, grid.active_neighbours(&[2, 0, 0]));
     }
 
     #[test]
+    fn test_grid_neighbours_coordinates() {
+        let grid = Grid::from_str(TEST_CASE_1, &3);
+        assert_eq!(26, grid.neighbours_coordinates(&[5, 5, 5]).len());
+        let grid = Grid::from_str(TEST_CASE_1, &4);
+        assert_eq!(80, grid.neighbours_coordinates(&[5, 5, 5, 5]).len());
+    }
+
+    #[test]
     fn test_grid_next_position_for_coordinate() {
-        let grid = Grid::from_str(TEST_CASE_1, &0);
+        let grid = Grid::from_str(TEST_CASE_1, &3);
         assert_eq!(
             PositionType::ACTIVE,
             grid.next_position_for_coordinate(&[1, 0, -1])
@@ -207,7 +240,7 @@ mod tests {
 
     #[test]
     fn test_grid_next_iteration() {
-        let mut grid = Grid::from_str(TEST_CASE_1, &0);
+        let mut grid = Grid::from_str(TEST_CASE_1, &3);
         for _ in 1..=6 {
             grid = grid.next_iteration();
         }
