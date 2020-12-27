@@ -5,6 +5,15 @@ use std::collections::HashMap;
 extern crate itertools;
 use self::itertools::*;
 
+lazy_static! {
+    static ref DELTA_COORDINATES: HashMap<usize, Vec<Vec<isize>>> = {
+        let mut deltas = HashMap::new();
+        deltas.insert(3, calculate_delta_coordinates(&3));
+        deltas.insert(4, calculate_delta_coordinates(&4));
+        deltas
+    };
+}
+
 pub fn run() -> (Option<String>, Option<String>) {
     let filename = "inputs/day17.txt";
     let inputs = read_inputs(&filename);
@@ -69,30 +78,12 @@ impl Grid {
     }
 
     fn neighbours_coordinates(&self, coordinates: &[isize]) -> Vec<Vec<isize>> {
-        let positions = [-1, 0, 1];
+        let dimensions = coordinates.len();
+        let deltas = DELTA_COORDINATES.get(&dimensions).unwrap();
 
-        let mut delta_coordinates: Vec<Vec<isize>> = positions
+        deltas
             .iter()
-            .cartesian_product(positions.iter())
-            .map(|(left, right)| vec![*left, *right])
-            .collect();
-
-        for _ in 2..coordinates.len() {
-            delta_coordinates = delta_coordinates
-                .iter()
-                .cartesian_product(positions.iter())
-                .map(|(left, right)| {
-                    let mut left = left.clone();
-                    left.push(*right);
-                    left
-                })
-                .collect();
-        }
-
-        delta_coordinates
-            .iter()
-            .map(|delta| add_position_by_position(&delta, &coordinates))
-            .filter(|x| x != &coordinates.to_vec())
+            .map(|delta| add_position_by_position(delta, &coordinates))
             .collect()
     }
 
@@ -153,6 +144,7 @@ impl PositionType {
     }
 }
 
+#[inline]
 fn add_position_by_position(a: &[isize], b: &[isize]) -> Vec<isize> {
     a.iter()
         .zip(b.iter())
@@ -160,6 +152,33 @@ fn add_position_by_position(a: &[isize], b: &[isize]) -> Vec<isize> {
         .collect()
 }
 
+fn calculate_delta_coordinates(dimension: &usize) -> Vec<Vec<isize>> {
+    let positions = [-1, 0, 1];
+
+    let mut deltas: Vec<Vec<isize>> = positions
+        .iter()
+        .cartesian_product(positions.iter())
+        .map(|(left, right)| vec![*left, *right])
+        .collect();
+
+    for _ in 2..*dimension {
+        deltas = deltas
+            .iter()
+            .cartesian_product(positions.iter())
+            .map(|(left, right)| {
+                let mut left = left.clone();
+                left.push(*right);
+                left
+            })
+            .collect();
+    }
+
+    deltas
+        .iter()
+        .cloned()
+        .filter(|x| x != &vec![0, 0, 0] && x != &vec![0, 0, 0, 0])
+        .collect()
+}
 #[cfg(test)]
 mod tests {
     use super::*;
