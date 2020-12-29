@@ -21,17 +21,39 @@ pub fn run() -> (Option<String>, Option<String>) {
         .sum();
 
     let part_one = Some(sum_of_results.to_string());
-    let part_two = None;
+
+    let sum_of_results: isize = inputs
+        .lines()
+        .map(eval_expression_with_add_precedence)
+        .filter_map(|result| result.parse::<isize>().ok())
+        .sum();
+
+    let part_two = Some(sum_of_results.to_string());
 
     (part_one, part_two)
 }
 
 fn eval_expression(expression: &str) -> String {
-    let expression = simplify_expression(expression);
-    solve_simple_expression(&expression).to_string()
+    let find_first_operation_idx: fn(&[Element]) -> usize = |_| 3;
+
+    let expression = simplify_expression(expression, eval_expression);
+    solve_expression(&expression, find_first_operation_idx).to_string()
 }
 
-fn simplify_expression(expression: &str) -> String {
+fn eval_expression_with_add_precedence(expression: &str) -> String {
+    let expression = simplify_expression(expression, eval_expression_with_add_precedence);
+    solve_expression(&expression, find_next_add_idx).to_string()
+}
+
+fn find_next_add_idx(elements: &[Element]) -> usize {
+    elements
+        .iter()
+        .enumerate()
+        .find(|(_, x)| x.element_type == ElementType::ADD)
+        .map_or(3, |(idx, _)| idx + 2)
+}
+
+fn simplify_expression(expression: &str, eval_function: fn(&str) -> String) -> String {
     if RE.is_match(expression) {
         let new_expression = RE
             .captures_iter(expression)
@@ -41,26 +63,27 @@ fn simplify_expression(expression: &str) -> String {
                 let capture_with_brackets = format!("({})", capture);
                 new_expression.replace(
                     capture_with_brackets.as_str(),
-                    eval_expression(capture).as_str(),
+                    eval_function(capture).as_str(),
                 )
             });
-        simplify_expression(&new_expression)
+        simplify_expression(&new_expression, eval_function)
     } else {
         expression.to_string()
     }
 }
 
-fn solve_simple_expression(expression: &str) -> isize {
+fn solve_expression(expression: &str, next_index: fn(&[Element]) -> usize) -> isize {
     let mut expr_vec: Vec<Element> = expression
         .split_whitespace()
         .filter_map(|x| Element::from_str(x))
         .collect();
 
     while expr_vec.len() > 1 {
-        let (left, right) = expr_vec.split_at(3);
-        let left = Element::eval(&left[0], &left[1], &left[2]).unwrap();
+        let idx = next_index(&expr_vec);
+        let (left, right) = expr_vec.split_at(idx);
+        let new_element = Element::eval(&left[idx - 3], &left[idx - 2], &left[idx - 1]).unwrap();
 
-        expr_vec = vec![vec![left], right.to_vec()].concat();
+        expr_vec = vec![left[0..idx - 3].to_vec(), vec![new_element], right.to_vec()].concat();
     }
     expr_vec[0].value.unwrap()
 }
@@ -148,7 +171,7 @@ mod tests {
 
     #[test]
     fn test_eval_expression() {
-        assert_eq!("71", &eval_expression("1 + 2 * 3 + 4 * 5 + 6"));
+        assert_eq!("71", eval_expression("1 + 2 * 3 + 4 * 5 + 6"));
         assert_eq!("11", eval_expression("(5 + 6)"));
         assert_eq!("51", eval_expression("1 + (2 * 3) + (4 * (5 + 6))"));
         assert_eq!("26", eval_expression("2 * 3 + (4 * 5)"));
@@ -162,17 +185,51 @@ mod tests {
             eval_expression("((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2")
         );
     }
+
     #[test]
-    fn test_simplify_expression() {
+    fn test_eval_expression_with_add_precedence() {
         assert_eq!(
-            "6810 + 2 + 4 * 2",
-            simplify_expression("((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2")
+            "231",
+            eval_expression_with_add_precedence("1 + 2 * 3 + 4 * 5 + 6")
+        );
+        assert_eq!(
+            "51",
+            eval_expression_with_add_precedence("1 + (2 * 3) + (4 * (5 + 6))")
+        );
+        assert_eq!("46", eval_expression_with_add_precedence("2 * 3 + (4 * 5)"));
+        assert_eq!(
+            "1445",
+            eval_expression_with_add_precedence("5 + (8 * 3 + 9 + 3 * 4 * 3)")
+        );
+        assert_eq!(
+            "669060",
+            eval_expression_with_add_precedence("5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))")
+        );
+        assert_eq!(
+            "23340",
+            eval_expression_with_add_precedence("((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2")
         );
     }
 
     #[test]
-    fn test_solve_simple_expression() {
-        assert_eq!(71, solve_simple_expression("1 + 2 * 3 + 4 * 5 + 6"));
+    fn test_simplify_expression() {
+        assert_eq!(
+            "6810 + 2 + 4 * 2",
+            simplify_expression(
+                "((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2",
+                eval_expression
+            )
+        );
+        assert_eq!("11", eval_expression("((5 + 6))"));
+    }
+
+    #[test]
+    fn test_solve_expression() {
+        assert_eq!(71, solve_expression("1 + 2 * 3 + 4 * 5 + 6", |_| 3));
+        assert_eq!(
+            231,
+            solve_expression("1 + 2 * 3 + 4 * 5 + 6", find_next_add_idx)
+        );
     }
 
     #[test]
