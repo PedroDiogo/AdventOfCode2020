@@ -30,3 +30,4 @@ cargo run day_number
 | Day 16 | :heavy_check_mark: | :heavy_check_mark: |
 | Day 17 | :heavy_check_mark: | :heavy_check_mark: |
 | Day 18 | :heavy_check_mark: | :heavy_check_mark: |
+| Day 19 | :heavy_check_mark: |                    |
