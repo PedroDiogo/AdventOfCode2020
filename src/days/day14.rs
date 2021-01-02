@@ -5,6 +5,11 @@ use self::regex::Regex;
 
 use std::collections::HashMap;
 
+lazy_static! {
+    static ref RE_MASK: Regex = Regex::new(r"mask = (?P<mask>[0|1|X]+)").unwrap();
+    static ref RE_MEMORY: Regex = Regex::new(r"mem\[(?P<address>\d+)\] = (?P<value>\d+)").unwrap();
+}
+
 pub fn run() -> (Option<String>, Option<String>) {
     let filename = "inputs/day14.txt";
     let inputs = read_inputs(&filename);
@@ -18,15 +23,13 @@ pub fn run() -> (Option<String>, Option<String>) {
 }
 
 fn parse_mask(input: &str) -> Option<&str> {
-    let re = Regex::new(r"mask = (?P<mask>[0|1|X]+)").unwrap();
-
-    re.captures(input)
+    RE_MASK
+        .captures(input)
         .and_then(|cap| cap.name("mask").map(|x| x.as_str()))
 }
 
 fn parse_memory(input: &str) -> Option<(usize, usize)> {
-    let re = Regex::new(r"mem\[(?P<address>\d+)\] = (?P<value>\d+)").unwrap();
-    re.captures(input).and_then(|cap| {
+    RE_MEMORY.captures(input).and_then(|cap| {
         let address = cap
             .name("address")
             .map(|x| x.as_str().parse::<usize>().ok())
