@@ -4,6 +4,9 @@ use std::collections::{HashMap, HashSet};
 extern crate regex;
 use self::regex::Regex;
 
+extern crate itertools;
+use self::itertools::*;
+
 pub fn run() -> (Option<String>, Option<String>) {
     let filename = "inputs/day21.txt";
     let inputs = read_inputs(&filename);
@@ -12,7 +15,7 @@ pub fn run() -> (Option<String>, Option<String>) {
 
     let part_one =
         Some(number_of_ingredients_with_no_allergens(&all_ingredients, &allergens).to_string());
-    let part_two = None;
+    let part_two = Some(get_canonical_dangerous_ingredient_list(&allergens));
 
     (part_one, part_two)
 }
@@ -94,6 +97,14 @@ fn number_of_ingredients_with_no_allergens(
     all_ingredients_without_allergens.len()
 }
 
+fn get_canonical_dangerous_ingredient_list(allergens: &HashMap<String, String>) -> String {
+    allergens
+        .iter()
+        .sorted_by_key(|x| x.0)
+        .map(|(_, value)| value)
+        .join(",")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -139,6 +150,15 @@ sqjhc mxmxvkd sbzzf (contains fish)";
         assert_eq!(
             5,
             number_of_ingredients_with_no_allergens(&ingredients, &allergens)
+        );
+    }
+
+    #[test]
+    fn test_get_canonical_dangerous_ingredient_list() {
+        let allergens = find_allergens(TEST_CASE_1);
+        assert_eq!(
+            "mxmxvkd,sqjhc,fvjkl",
+            get_canonical_dangerous_ingredient_list(&allergens),
         );
     }
 }
